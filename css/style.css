@@ -1,0 +1,10 @@
+body{
+    background-image: radial-gradient(circle at 46.99% 38.76%, #ba81ff 0, #8b63ee 25%, #4d42d4 50%, #0026bb 75%, #0017a6 100%);
+    
+}
+h1 {
+    color: white;
+}
+.contenedor-img {
+    text-align: center;
+}

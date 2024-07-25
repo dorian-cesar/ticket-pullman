@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Ticket</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="contenedor-img">
+            <img src="./img/Logo.svg" alt="">
+        </div>
+        <h1 class="text-center">Generar Ticket</h1>
+        <form id="generateTicketForm">
+            <div class="form-group">
+                <label for="areaSolicitante">Área Solicitante</label>
+                <select class="form-control" id="areaSolicitante" name="areaSolicitante" required>
+                    <option value="Flota Interurbana">Flota Interurbana</option>
+                    <option value="Flota Tandem">Flota Tandem</option>
+                    <option value="Flota Cargo">Flota Cargo</option>
+                    <option value="Flota Vehículos Administrativos">Flota Vehículos Administrativos</option>
+                    <option value="Flota Terceros">Flota Terceros</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="areaEjecutora">Área Ejecutora</label>
+                <select class="form-control" id="areaEjecutora" name="areaEjecutora" required>
+                    <option value="Implementacion">Implementación</option>
+                    <option value="Operaciones">Operaciones</option>
+                    <option value="Monitoreo">Monitoreo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="tipoAtencion">Tipo de Atención</label>
+                <select class="form-control" id="tipoAtencion" name="tipoAtencion" required>
+                    <option value="Instalacion">Instalación</option>
+                    <option value="Desinstalacion">Desinstalación</option>
+                    <option value="Solicitud de informacion">Solicitud de información</option>
+                    <option value="Asistencia tecnica">Asistencia técnica</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="producto">Producto</label>
+                <select class="form-control" id="producto" name="producto" required>
+                    <option value="WIFI + TV (EX-GOMOVIE)">WIFI + TV (EX-GOMOVIE)</option>
+                    <option value="WIFI URBAN">WIFI URBAN</option>
+                    <option value="TOTEM">TOTEM</option>
+                    <option value="MASGPS">MASGPS</option>
+                    <option value="ASISTENTE / BI">ASISTENTE / BI</option>
+                    <option value="SENTINEL">SENTINEL</option>
+                    <option value="MONITOREO ON BOARD">MONITOREO ON BOARD</option>
+                    <option value="CCTV">CCTV</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="descripcion">Descripción</label>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Generar Ticket</button>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#generateTicketForm').on('submit', function(e) {
+                e.preventDefault();
+                const data = {
+                    areaSolicitante: $('#areaSolicitante').val(),
+                    areaEjecutora: $('#areaEjecutora').val(),
+                    tipoAtencion: $('#tipoAtencion').val(),
+                    producto: $('#producto').val(),
+                    descripcion: $('#descripcion').val(),
+                    estado: 'generado'
+                };
+                $.ajax({
+                    url: 'api/tickets/create.php',
+                    type: 'POST',
+                    data: JSON.stringify(data),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Ticket generado exitosamente');
+                            $('#areaEjecutora').val('');
+                            $('#tipoAtencion').val('');
+                            $('#producto').val('');
+                            $('#descripcion').val('');
+                        } else {
+                            alert('Error al generar el ticket: ' + response.message);
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Error al generar el ticket:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
+

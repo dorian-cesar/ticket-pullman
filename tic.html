@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Tickets</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="contenedor-img">
+            <img src="./img/Logo.svg" alt="">
+        </div>
+        <h1 class="my-4">Gestión de Tickets</h1>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input type="text" id="ticketIdFilter" class="form-control" placeholder="Buscar por número de ticket">
+            </div>
+            <div class="col-md-4">
+                <select id="areaFilter" class="form-control">
+                    <option value="">Todas las áreas</option>
+                    <option value="implementacion">Implementación</option>
+                    <option value="operaciones">Operaciones</option>
+                    <option value="monitoreo">Monitoreo</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select id="estadoFilter" class="form-control">
+                    <option value="">Todos los estados</option>
+                    <option value="generado">Generado</option>
+                    <option value="en curso">En Curso</option>
+                    <option value="cerrado">Cerrado</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="ticketsContainer" class="row"></div>
+    </div>
+
+    <!-- Modal para cerrar ticket -->
+    <div class="modal fade" id="closeTicketModal" tabindex="-1" aria-labelledby="closeTicketModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="closeTicketModalLabel">Cerrar Ticket</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="closeTicketForm">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="solucion">Solución</label>
+                            <textarea id="solucion" name="solucion" class="form-control" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="archivo">Archivo Adjunto</label>
+                            <input type="file" id="archivo" name="archivo" class="form-control">
+                        </div>
+                        <input type="hidden" id="ticketId" name="ticketId">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Cerrar Ticket</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            cargarTickets();
+
+            $('#ticketIdFilter, #areaFilter, #estadoFilter').on('input change', function() {
+                cargarTickets();
+            });
+
+            function cargarTickets() {
+                $.ajax({
+                    url: 'api/tickets/read.php',
+                    method: 'GET',
+                    success: function(response) {
+                        var ticketsContainer = $('#ticketsContainer');
+                        ticketsContainer.empty();
+                        var ticketIdFilter = $('#ticketIdFilter').val().toLowerCase();
+                        var areaFilter = $('#areaFilter').val().toLowerCase();
+                        var estadoFilter = $('#estadoFilter').val();
+
+                        response.forEach(function(ticket) {
+                            if (ticket.estado === null) {
+                                ticket.estado = 'generado';
+                            }
+                            if (
+                                (ticketIdFilter === '' || ticket.id == (ticketIdFilter)) &&
+                                (areaFilter === '' || ticket.area_ejecutora.toLowerCase() === areaFilter) &&
+                                (estadoFilter === '' || ticket.estado === estadoFilter)
+                            ) {
+
+                                var ticketCard = `
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">Ticket #${ticket.id}</h5>
+                                                <p class="card-text"><strong>Área Solicitante:</strong> ${ticket.area_solicitante}</p>
+                                                <p class="card-text"><strong>Área Ejecutora:</strong> ${ticket.area_ejecutora}</p>
+                                                <p class="card-text"><strong>Tipo de Atención:</strong> ${ticket.tipo_atencion}</p>
+                                                <p class="card-text"><strong>Producto:</strong> ${ticket.producto}</p>
+                                                <p class="card-text"><strong>Descripción:</strong> ${ticket.descripcion}</p>
+                                                <p class="card-text"><strong>Estado:</strong> ${ticket.estado}</p>
+                                                ${ticket.archivo ? `<p class="card-text"><strong>Archivo:</strong> <a href="${ticket.archivo}" target="_blank">Ver adjunto</a></p>` : ''}
+                                                <button class="btn btn-primary btn-en-curso" data-id="${ticket.id}" ${ticket.estado === 'en curso' || ticket.estado === 'cerrado' ? 'disabled' : ''}>En Curso</button>
+                                                <button class="btn btn-success btn-cerrado" data-id="${ticket.id}" ${ticket.estado !== 'en curso' ? 'disabled' : ''}>Cerrado</button>
+                                                <div class="historial mt-3">
+                                                    <h6>Historial</h6>
+                                                    <ul class="list-group">`;
+
+                                ticket.historial.forEach(function(historial) {
+                                    ticketCard += `<li class="list-group-item">${historial.fecha} - ${historial.estado} - ${historial.descripcion}</li>`;
+                                });
+
+                                ticketCard += `</ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                ticketsContainer.append(ticketCard);
+                            }
+                        });
+
+                        // Manejar el cambio de estado
+                        $('.btn-en-curso').click(function() {
+                            var ticketId = $(this).data('id');
+                            actualizarEstadoTicket(ticketId, 'en curso', $(this));
+                        });
+
+                        $('.btn-cerrado').click(function() {
+                            var ticketId = $(this).data('id');
+                            $('#ticketId').val(ticketId);
+                            $('#closeTicketModal').modal('show');
+                        });
+                    },
+                    error: function() {
+                        alert('Error al cargar los tickets');
+                    }
+                });
+            }
+
+            $('#closeTicketForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+                var ticketId = $('#ticketId').val();
+
+                $.ajax({
+                    url: 'api/tickets/update.php',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        if (response.success) {
+                            $('#closeTicketModal').modal('hide');
+                            alert('Ticket cerrado exitosamente');
+                            cargarTickets();
+                        } else {
+                            alert('Error al cerrar el ticket: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error al cerrar el ticket');
+                    }
+                });
+            });
+
+            function actualizarEstadoTicket(ticketId, estado, button, descripcion = '') {
+                $.ajax({
+                    url: 'api/tickets/update.php',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: ticketId, estado: estado, descripcion: descripcion }),
+                    success: function(response) {
+                        if (response.success) {
+                            var cardBody = button.closest('.card-body');
+                            cardBody.find('.card-text:contains("Estado:")').text('Estado: ' + estado);
+
+                            if (estado === 'cerrado') {
+                                button.prop('disabled', true);
+                                button.siblings('.btn-en-curso').prop('disabled', true);
+                                cardBody.find('.historial ul').append(`<li class="list-group-item">${new Date().toLocaleString()} - ${estado} - ${descripcion}</li>`);
+                            } else if (estado === 'en curso') {
+                                button.prop('disabled', true);
+                                button.siblings('.btn-cerrado').prop('disabled', false);
+                                cardBody.find('.historial ul').append(`<li class="list-group-item">${new Date().toLocaleString()} - ${estado} - ${descripcion}</li>`);
+                            }
+                        } else {
+                            alert('Error al actualizar el estado del ticket: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error al actualizar el estado del ticket');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
