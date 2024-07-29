@@ -8,3 +8,6 @@ h1 {
 .contenedor-img {
     text-align: center;
 }
+.container label {
+    color: #ced4da
+}

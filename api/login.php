@@ -1,50 +1,43 @@
 <?php
 header("Content-Type: application/json");
 
-// Obtener los datos enviados en el cuerpo de la solicitud
-$input = json_decode(file_get_contents("php://input"));
+include '../config/config.php';
 
-// Conectar a la base de datos
-$servername = "ls-8ce02ad0b7ea586d393e375c25caa3488acb80a5.cylsiewx0zgx.us-east-1.rds.amazonaws.com";
-$username = "dbmasteruser";
-$password = ':&T``E~r:r!$1c6d:m143lzzvGJ$NuP;';
-$dbname = "control_ticket";
+$input = json_decode(file_get_contents("php://input"), true);
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Verificar la conexión
-if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
+if (!isset($input['email']) || !isset($input['password'])) {
+    echo json_encode(["success" => false, "message" => "Falta el correo o la contraseña"]);
+    exit();
 }
 
-$email = $conn->real_escape_string($input->email);
-$password = $input->password;
-$area = $conn->real_escape_string($input->area);
+$email = $input['email'];
+$password = $input['password'];
 
-$response = ["success" => false, "message" => "Invalid credentials"];
+// Verificar credenciales (debes ajustar esta parte según tu sistema de autenticación)
 
-// Consulta para verificar las credenciales del usuario
-
-$sql = "SELECT * FROM users WHERE email = '$email' AND area = '$area'";
+$sql = "SELECT * FROM users WHERE email='$email'";
 $result = $conn->query($sql);
 
-//echo $user['password'];
+
 
 
 
 if ($result->num_rows > 0) {
     $user = $result->fetch_assoc();
 
-    // Verificar la contraseña
+   
+    // Verificar la contraseña hasheada
     if (password_verify($password, $user['password'])) {
-        $response["success"] = true;
-        $response["message"] = "Login successful";
-     
-       
+        // Autenticación exitosa
+        echo json_encode(["success" => true, "message" => "Autenticación exitosa", "area"=>$user['area']]);
+    } else {
+        // Contraseña incorrecta
+        echo json_encode(["success" => false, "message" => "Correo electrónico o contraseña incorrectos"]);
     }
+} else {
+    // Usuario no encontrado
+    echo json_encode(["success" => false, "message" => "Correo electrónico o contraseña incorrectos"]);
 }
-
-echo json_encode($response);
 
 $conn->close();
 ?>

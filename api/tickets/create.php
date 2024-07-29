@@ -1,6 +1,7 @@
 <?php
 header("Content-Type: application/json");
 include '../../config/config.php';
+date_default_timezone_set('America/Santiago');
 
 // Obtener los datos enviados en el cuerpo de la solicitud
 $input = json_decode(file_get_contents("php://input"), true);
@@ -13,9 +14,10 @@ $tipo_atencion = $conn->real_escape_string($input['tipoAtencion']);
 $producto = $conn->real_escape_string($input['producto']);
 $descripcion = $conn->real_escape_string($input['descripcion']);
 $estado = $conn->real_escape_string($input['estado']);
+$email = $conn->real_escape_string($input['email']);
 $fecha_creacion = date('Y-m-d H:i:s');
 
-$sql = "INSERT INTO tickets (area_solicitante, area_ejecutora, tipo_atencion, producto, descripcion, estado, fecha_creacion) VALUES ('$area_solicitante', '$area_ejecutora', '$tipo_atencion', '$producto', '$descripcion', '$estado', '$fecha_creacion')";
+$sql = "INSERT INTO tickets (area_solicitante, area_ejecutora, tipo_atencion, producto, descripcion, estado, fecha_creacion, email) VALUES ('$area_solicitante', '$area_ejecutora', '$tipo_atencion', '$producto', '$descripcion', '$estado', '$fecha_creacion', '$email')";
 
 $response = ["success" => false, "message" => ""];
 
@@ -40,7 +42,7 @@ if ($conn->query($sql) === TRUE) {
 
         // Destinatarios
         $mail->setFrom('ticket@wit.la', 'Sistema de Tickets');
-        $mail->addAddress('epaz@wit.la');
+        $mail->addAddress($email);
 
         // Contenido del correo
         $mail->isHTML(true);

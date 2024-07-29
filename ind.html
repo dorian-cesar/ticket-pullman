@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Tickets</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+    <style>
+        .loader {
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid #3498db;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 9998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="contenedor-img">
+            <img src="./img/Logo.svg" alt="">
+        </div>
+        <h1 class="my-4">Gestión de Tickets</h1>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input type="text" id="ticketIdFilter" class="form-control" placeholder="Buscar por número de ticket">
+            </div>
+            <div class="col-md-4">
+                <select id="areaFilter" class="form-control">
+                    <option value="">Todas las áreas</option>
+                    <option value="implementacion">Implementación</option>
+                    <option value="operaciones">Operaciones</option>
+                    <option value="monitoreo">Monitoreo</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select id="estadoFilter" class="form-control">
+                    <option value="">Todos los estados</option>
+                    <option value="generado">Generado</option>
+                    <option value="en curso">En Curso</option>
+                    <option value="cerrado">Cerrado</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="ticketsContainer" class="row"></div>
+    </div>
+
+    <div class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            function showLoader() {
+                $('.loader-overlay').show();
+                $('.loader').show();
+            }
+
+            function hideLoader() {
+                $('.loader-overlay').hide();
+                $('.loader').hide();
+            }
+            cargarTickets();
+
+            $('#ticketIdFilter, #areaFilter, #estadoFilter').on('input change', function() {
+                cargarTickets();
+            });
+
+            function cargarTickets() {
+                $.ajax({
+                    url: 'api/tickets/read.php',
+                    method: 'GET',
+                    success: function(response) {
+                        var ticketsContainer = $('#ticketsContainer');
+                        ticketsContainer.empty();
+                        var ticketIdFilter = $('#ticketIdFilter').val().toLowerCase();
+                        var areaFilter = $('#areaFilter').val().toLowerCase();
+                        var estadoFilter = $('#estadoFilter').val();
+
+                        response.forEach(function(ticket) {
+                            if(ticket.estado=== null){
+                                    ticket.estado='generado'
+                                }
+                            if (
+                                (ticketIdFilter === '' || ticket.id===(ticketIdFilter)) &&
+                                (areaFilter === '' || ticket.area_ejecutora.toLowerCase() === areaFilter) &&
+                                (estadoFilter === '' || ticket.estado === estadoFilter)
+                            ) {
+                                
+                                var ticketCard = `
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">Ticket #${ticket.id}</h5>
+                                                <p class="card-text"><strong>Área Solicitante:</strong> ${ticket.area_solicitante}</p>
+                                                <p class="card-text"><strong>Área Ejecutora:</strong> ${ticket.area_ejecutora}</p>
+                                                <p class="card-text"><strong>Tipo de Atención:</strong> ${ticket.tipo_atencion}</p>
+                                                <p class="card-text"><strong>Producto:</strong> ${ticket.producto}</p>
+                                                <p class="card-text"><strong>Descripción:</strong> ${ticket.descripcion}</p>
+                                                <p class="card-text"><strong>Estado:</strong> ${ticket.estado}</p>
+                                                <button class="btn btn-primary btn-en-curso" data-id="${ticket.id}" ${ticket.estado === 'en curso' || ticket.estado === 'cerrado' ? 'disabled' : ''}>En Curso</button>
+                                                <button class="btn btn-success btn-cerrado" data-id="${ticket.id}" ${ticket.estado !== 'en curso' ? 'disabled' : ''}>Cerrado</button>
+                                                <div class="historial mt-3">
+                                                    <h6>Historial</h6>
+                                                    <ul class="list-group">`;
+                                
+                                ticket.historial.forEach(function(historial) {
+                                    ticketCard += `<li class="list-group-item">${historial.fecha} - ${historial.estado} - ${historial.descripcion}</li>`;
+                                });
+
+                                ticketCard += `</ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                ticketsContainer.append(ticketCard);
+                            }
+                        });
+
+                        // Manejar el cambio de estado
+                        $('.btn-en-curso').click(function() {
+                            var ticketId = $(this).data('id');
+                            showLoader();
+                            $.ajax({
+                                url: 'api/tickets/encurso.php',
+                                method: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ id: ticketId, estado: 'en curso' }),
+                                success: function(response) {
+                                    hideLoader();
+                                    if (response.success) {
+                                        cargarTickets();
+                                    } else {
+                                        alert('Error al actualizar el estado del ticket: ' + response.message);
+                                    }
+                                },
+                                error: function() {
+                                    hideLoader();
+                                    alert('Error al actualizar el estado del ticket');
+                                }
+                            });
+                        });
+
+                        $('.btn-cerrado').click(function() {
+                            var ticketId = $(this).data('id');
+                            var solucion = prompt("Ingrese la solución del ticket:");
+                            if (solucion) {
+                                showLoader();
+                                var formData = new FormData();
+                                formData.append('ticketId', ticketId);
+                                formData.append('estado', 'cerrado');
+                                formData.append('solucion', solucion);
+                                formData.append('archivo', $('#archivo')[0].files[0]);
+
+                                $.ajax({
+                                    url: 'api/tickets/close.php',
+                                    method: 'POST',
+                                    data: formData,
+                                    contentType: false,
+                                    processData: false,
+                                    success: function(response) {
+                                        hideLoader();
+                                        if (response.success) {
+                                            cargarTickets();
+                                        } else {
+                                            alert('Error al cerrar el ticket: ' + response.message);
+                                        }
+                                    },
+                                    error: function() {
+                                        hideLoader();
+                                        alert('Error al cerrar el ticket');
+                                    }
+                                });
+                            }
+                        });
+                    },
+                    error: function() {
+                        alert('Error al cargar los tickets');
+                    }
+                });
+           
