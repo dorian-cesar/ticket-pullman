@@ -14,6 +14,7 @@ if (!isset($input['id']) || !isset($input['estado'])) {
 
 $ticket_id = $input['id'];
 $estado = $input['estado'];
+$email = $input['email'];
 $descripcion = isset($input['descripcion']) ? $input['descripcion'] : '';
 $fecha = date('Y-m-d H:i:s');
 
@@ -29,21 +30,20 @@ try {
     $sql_update_ticket .= " WHERE id='$ticket_id'";
 
     if ($conn->query($sql_update_ticket) === FALSE) {
-        throw new Exception("Error al actualizar el estado del ticket: " . $conn->error);
+        throw new Exception("Error al actualizar el estado del ticket: $conn->error");
     }
 
     // Insertar en el historial del ticket
     $historial_descripcion = $estado == 'cerrado' ? "Ticket cerrado con solución: $descripcion" : "Estado actualizado a $estado";
-    $sql_insert_historial = "INSERT INTO ticket_history (ticket_id, fecha, estado, descripcion) VALUES ('$ticket_id', '$fecha', '$estado', '$historial_descripcion')";
+    $sql_insert_historial = "INSERT INTO ticket_history (ticket_id, fecha, hestado, hdescripcion) VALUES ('$ticket_id', '$fecha', '$estado', '$historial_descripcion')";
 
     if ($conn->query($sql_insert_historial) === FALSE) {
-        throw new Exception("Error al insertar en el historial del ticket: " . $conn->error);
+        throw new Exception("Error al insertar en el historial del ticket:  $conn->error");
     }
 
-    // Si el estado es 'cerrado', enviar correo
-    if ($estado == 'cerrado') {
-        sendEmail($ticket_id, $estado, $descripcion);
-    }
+    // Se envia el correo en toda actualizacion de estado de ticket
+    sendEmail($ticket_id, $estado, $descripcion, $email);
+
 
     // Confirmar transacción
     $conn->commit();
@@ -56,10 +56,11 @@ try {
 
 $conn->close();
 
-function sendEmail($ticket_id, $estado, $descripcion) {
+function sendEmail($ticket_id, $estado, $descripcion, $email)
+{
     // Crear una instancia de PHPMailer
     $mail = new PHPMailer\PHPMailer\PHPMailer();
-    
+
     // Configuración del servidor SMTP
     $mail->isSMTP();
     $mail->Host = 'smtp.gmail.com'; // Cambia esto por tu servidor SMTP
@@ -71,18 +72,21 @@ function sendEmail($ticket_id, $estado, $descripcion) {
 
     // Configuración del correo
     $mail->setFrom('noreply@example.com', 'Sistema de Tickets'); // Cambia esto por tu dirección de correo
-    $mail->addAddress('epaz@wit.la', 'Dorian Gonzalez');
+    $mail->addAddress($email);
     $mail->isHTML(true);
-    $mail->Subject = 'Ticket Cerrado: #' . $ticket_id;
-    $mail->Body = '
-        <h1>Ticket Cerrado</h1>
-        <p><strong>ID:</strong> ' . $ticket_id . '</p>
-        <p><strong>Estado:</strong> ' . $estado . '</p>
-        <p><strong>Solución:</strong> ' . $descripcion . '</p>
-    ';
+    $mail->Subject = "Ticket '$estado': ID # $ticket_id";
+    $mail->Body = "
+        <h1>Ticket '$estado'</h1>
+        <p><strong>ID:</strong>  $ticket_id </p>
+        <p><strong>Estado:</strong>  $estado </p>
+    ";
 
-    if(!$mail->send()) {
-        error_log('Mail error: ' . $mail->ErrorInfo);
+    if ($descripcion != '') {
+        $mail->Body .= "<p><strong>Solución:</strong>  $descripcion </p>";
+    }
+
+
+    if (!$mail->send()) {
+        error_log("Mail error: $mail->ErrorInfo");
     }
 }
-?>

@@ -4,7 +4,7 @@ header("Content-Type: application/json");
 include '../../config/config.php';
 date_default_timezone_set('America/Santiago');
 
-$sql = "SELECT tickets.*, ticket_history.* FROM tickets LEFT JOIN ticket_history ON tickets.id = ticket_history.ticket_id  order by  tickets.id desc";
+$sql = "SELECT tickets.*, ticket_history.* FROM tickets LEFT JOIN ticket_history ON tickets.id = ticket_history.ticket_id WHERE tickets.estado != 'cerrado' order by  tickets.id desc";
 $result = $conn->query($sql);
 
 $tickets = [];
@@ -16,6 +16,7 @@ if ($result->num_rows > 0) {
             $tickets[$ticket_id] = [
                 'id' => $row['id'],
                 'area_solicitante' => $row['area_solicitante'],
+                'empresa' => $row['empresa'],
                 'area_ejecutora' => $row['area_ejecutora'],
                 'tipo_atencion' => $row['tipo_atencion'],
                 'producto' => $row['producto'],

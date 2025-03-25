@@ -1,0 +1,65 @@
+<h1 class="mb-4 fw-bold">Generar Ticket</h1>
+
+<div id="actions-panel" class="actions-panel text-end"></div>
+<div class="inner-container">
+  <form id="generateTicketForm">
+    <div class="row g-3">
+      <div id="empresasSegment" class="form-group col-12 col-md-6 hidden">
+        <input type="text" name="empresa" id="empresa">
+      </div>
+      <div class="form-group col-12 col-md-6">
+        <label for="areaEjecutora" class="form-label">Área Ejecutora</label>
+        <select
+          class="form-select"
+          id="areaEjecutora"
+          name="areaEjecutora"
+          required
+        >
+          <option value="Implementacion">Implementación</option>
+          <option value="Operaciones">Operaciones</option>
+          <option value="Monitoreo">Monitoreo</option>
+        </select>
+      </div>
+      <div class="form-group col-12 col-md-6">
+        <label for="tipoAtencion" class="form-label">Tipo de Atención</label>
+        <select
+          class="form-control"
+          id="tipoAtencion"
+          name="tipoAtencion"
+          required
+        >
+          <option value="Instalacion">Instalación</option>
+          <option value="Desinstalacion">Desinstalación</option>
+          <option value="Solicitud de informacion">
+            Solicitud de información
+          </option>
+          <option value="Asistencia tecnica">Asistencia técnica</option>
+        </select>
+      </div>
+      <div class="form-group col-12 col-md-6">
+        <label for="producto" class="form-label">Producto</label>
+        <select class="form-control" id="producto" name="producto" required>
+          <option value="WIFI + TV (EX-GOMOVIE)">WIFI + TV (EX-GOMOVIE)</option>
+          <option value="WIFI URBAN">WIFI URBAN</option>
+          <option value="TOTEM">TOTEM</option>
+          <option value="MASGPS">MASGPS</option>
+          <option value="ASISTENTE / BI">ASISTENTE / BI</option>
+          <option value="SENTINEL">SENTINEL</option>
+          <option value="MONITOREO ON BOARD">MONITOREO ON BOARD</option>
+          <option value="CCTV">CCTV</option>
+        </select>
+      </div>
+      <div class="form-group col-12 col-md-12">
+        <label for="descripcion" class="form-label">Descripción</label>
+        <textarea
+          class="form-control"
+          id="descripcion"
+          name="descripcion"
+          rows="3"
+          required
+        ></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Generar Ticket</button>
+    </div>
+  </form>
+</div>

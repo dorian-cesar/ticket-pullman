@@ -8,7 +8,7 @@ $input = json_decode(file_get_contents("php://input"), true);
 
 
 
-$area_solicitante = $conn->real_escape_string($input['areaSolicitante']);
+$empresa = $conn->real_escape_string($input['empresa']);
 $area_ejecutora = $conn->real_escape_string($input['areaEjecutora']);
 $tipo_atencion = $conn->real_escape_string($input['tipoAtencion']);
 $producto = $conn->real_escape_string($input['producto']);
@@ -17,7 +17,7 @@ $estado = $conn->real_escape_string($input['estado']);
 $email = $conn->real_escape_string($input['email']);
 $fecha_creacion = date('Y-m-d H:i:s');
 
-$sql = "INSERT INTO tickets (area_solicitante, area_ejecutora, tipo_atencion, producto, descripcion, estado, fecha_creacion, email) VALUES ('$area_solicitante', '$area_ejecutora', '$tipo_atencion', '$producto', '$descripcion', '$estado', '$fecha_creacion', '$email')";
+$sql = "INSERT INTO tickets (empresa, area_ejecutora, tipo_atencion, producto, descripcion, estado, fecha_creacion, email) VALUES ('$empresa', '$area_ejecutora', '$tipo_atencion', '$producto', '$descripcion', '$estado', '$fecha_creacion', '$email')";
 
 $response = ["success" => false, "message" => ""];
 
@@ -50,7 +50,7 @@ if ($conn->query($sql) === TRUE) {
         $mail->Body    = "
             <h1>Nuevo Ticket Creado</h1>
             <p><strong>ID del Ticket:</strong> $ticket_id</p>
-            <p><strong>Área Solicitante:</strong> $area_solicitante</p>
+            <p><strong>Empresa:</strong> $empresa</p>
             <p><strong>Área Ejecutora:</strong> $area_ejecutora</p>
             <p><strong>Tipo de Atención:</strong> $tipo_atencion</p>
             <p><strong>Producto:</strong> $producto</p>

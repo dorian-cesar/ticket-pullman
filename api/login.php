@@ -15,21 +15,26 @@ $password = $input['password'];
 
 // Verificar credenciales (debes ajustar esta parte según tu sistema de autenticación)
 
-$sql = "SELECT * FROM users WHERE email='$email'";
-$result = $conn->query($sql);
+$sql_query = "SELECT users.email AS userEmail, 
+users.password, 
+roles.nombre AS rolName, 
+empresas.nombre AS nombreEmpresa, 
+empresas.id AS idEmpresa 
+FROM users 
+JOIN roles ON roles.id = users.rol_id 
+JOIN empresas ON empresas.id = users.empresa_id 
+WHERE users.email='$email' ";
 
-
-
-
+$result = $conn->query($sql_query);
 
 if ($result->num_rows > 0) {
     $user = $result->fetch_assoc();
 
-   
+
     // Verificar la contraseña hasheada
     if (password_verify($password, $user['password'])) {
         // Autenticación exitosa
-        echo json_encode(["success" => true, "message" => "Autenticación exitosa", "area"=>$user['area']]);
+        echo json_encode(["success" => true, "message" => "Autenticación exitosa", "rol" => $user['rolName'], "email" => $user['userEmail'], "empresaName" => $user['nombreEmpresa'], "empresaID" => $user['idEmpresa']]);
     } else {
         // Contraseña incorrecta
         echo json_encode(["success" => false, "message" => "Correo electrónico o contraseña incorrectos"]);
@@ -40,4 +45,3 @@ if ($result->num_rows > 0) {
 }
 
 $conn->close();
-?>
