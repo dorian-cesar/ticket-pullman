@@ -10,7 +10,6 @@ export function init() {
     const observer = new MutationObserver((mutationsList, observer) => {
       // Verificar si #ticketsTable ha sido agregado al DOM
       if ($("#ticketsTable").length > 0) {
-        console.log("Elemento encontrado, inicializando DataTable...");
         initializeDataTable();
         observer.disconnect(); // Detener la observación
       }
@@ -62,21 +61,32 @@ function initializeDataTable() {
         render: function (data, type, row) {
           let buttons = "";
 
-          if (row.estado == "generado")
+          if (row.estado == "generado") {
             buttons = `<button class="btn btn-black mb-1 change-status" data-id="${row.id}" data-email="${row.email}" title="Cambiar a 'En Curso'">
               <i class="bi bi-person-check"></i>
             </button>`;
+          } else {
+            buttons += `
+            <button class="btn btn-black mb-1 historico-ticket" data-estado="${row.estado}" data-id="${
+              row.id
+            }" data-historico='${JSON.stringify(
+              row.historial
+            )}' title="Ver Histórico">
+              <i class="bi bi-clock-history"></i>
+            </button>`;
+          }
 
-          buttons += `
+          if (row.estado != "cerrado") {
+            buttons += `
             <button class="btn btn-black mb-1 finish-ticket" data-id="${row.id}" data-email="${row.email}" title="Cerrar Ticket">
               <i class="bi bi-lock-fill"></i>
             </button>`;
-
+          }
           return buttons;
         },
       },
     ],
-    order: [[6, "asc"]],
+    order: [[6, "desc"]],
     language: {
       // "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json" // Para traducir DataTables a español
       paginate: {
@@ -112,10 +122,9 @@ function initializeDataTable() {
     lastFocusedButton = this;
     const id = $(this).data("id");
     const email = $(this).data("email");
-    console.log(`Cambiando estado del ticket ${id}`);
 
     $("#statusModalMessage").html(
-      "¿Seguro que deseas cambiar el estado de este ticket a <b>En Curso<b/>?"
+      "¿Seguro que deseas cambiar el estado de este ticket a <b style='font-weight: bolder'>En Curso</b>?"
     );
     $("#statusModal").modal("show");
     $("#confirmChange")
@@ -129,7 +138,6 @@ function initializeDataTable() {
   $("#ticketsTable").on("click", ".finish-ticket", function () {
     const id = $(this).data("id");
     const email = $(this).data("email");
-    console.log(`Finalizando ticket ${id}`);
 
     $("#finishModalMessage").html(
       "¿Seguro que deseas cerrar el ticket seleccionado?"
@@ -141,7 +149,12 @@ function initializeDataTable() {
         const reason = $("#finishReason").val().trim();
 
         if (reason === "") {
-          alert("Por favor, escribe un motivo para el cambio de estado.");
+          $.toast({
+            type: "info",
+            message:
+              "Por favor, describe la solución implementada en la resolución del ticket.",
+          });
+          $("#finishReason").focus();
           return;
         }
 
@@ -152,24 +165,53 @@ function initializeDataTable() {
     // Aquí puedes mandar una petición a la API para finalizar el ticket
   });
 
+  $("#ticketsTable").on("click", ".historico-ticket", function () {
+    const data = $(this).data("historico");
+    const idTicket = $(this).data("id");
+    const estado = $(this).data("estado");
+    $("#historicoModalLabel")
+      .html("")
+      .html(`Historico del Ticket #${idTicket} (${estado})`);
+
+    // Suponiendo que la data relevante viene como un arreglo en una propiedad específica
+    let historicoData = data || [];
+
+    // Generamos contenido dinámico según los objetos del arreglo
+    let content = '<table class="table borderless">';
+    historicoData.forEach((item, index) => {
+      content += `<tr class="HeaderHistorico"><th colspan="2">Registro ${index + 1}</th></tr>`;
+      content += `<tr><td>Fecha:</td><td>${item.fecha}</td></tr>`;
+      content += `<tr><td>Descripción: </td><td>${item.Hdescripcion}</td></tr>`;
+      content += `<tr><td>Estado: </td><td>'<i>${item.Hestado}</i>'</td></tr>`;
+    });
+    content += '</table>';
+
+    $("#historicoModalContent").html(content);
+    $("#historicoModal").modal("show");
+  });
+
   $("#finishModal").on("hidden.bs.modal", function () {
     $("#finishReason").val("");
     if (lastFocusedButton) {
       $(lastFocusedButton).focus(); // Devuelve el foco al botón original
     }
   });
+
+  preloader.preloader("remove");
 }
 
 // Función para recargar el DataTable
 function reloadDataTable() {
+  preloader.preloader();
   if (dataTable) {
-    console.log("Recargando la tabla");
-    dataTable.ajax.reload(null, false); // false mantiene la paginación actual
+    dataTable.ajax.reload(function () {
+      console.log("Tabla recargada y actualizada");
+      preloader.preloader("remove");
+    });
   }
 }
 
 function actualizarEstadoTicket(ticketId, estado, descripcion = "", email) {
-
   $.ajax({
     url: "api/tickets/update.php",
     method: "POST",
@@ -180,16 +222,30 @@ function actualizarEstadoTicket(ticketId, estado, descripcion = "", email) {
       descripcion: descripcion,
       email: email,
     }),
+    beforeSend: function () {
+      preloader.preloader();
+    },
     success: function (response) {
+      preloader.preloader("remove");
       if (response.success) {
-        alert("Estado del ticket actualizado: " + response.message);
+        $.toast({
+          type: "info",
+          message: `${response.message}`,
+        });
         reloadDataTable();
       } else {
-        alert("Error al actualizar el estado del ticket: " + response.message);
+        $.toast({
+          type: "error",
+          message: `Error al actualizar el estado del ticket: ${response.message}`,
+        });
       }
     },
     error: function () {
-      alert("Error al actualizar el estado del ticket");
+      preloader.preloader("remove");
+      $.toast({
+        type: "error",
+        message: `Error al actualizar el estado del ticket: ${response.message}`,
+      });
     },
   });
 }

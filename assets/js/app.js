@@ -1,5 +1,7 @@
 // Lista de ficheros sin JS
-const urlScriptless = ["home"];
+const urlScriptless = [];
+
+let preloader = $(".body-main-content");
 
 // Objeto general para renderizar el navbar y los action buttons de cada modulo, tomando como referencia el rol del usuario (SuperAdmin, Admonistrador, Cliente, Invitado)
 const menuItems = {
@@ -128,6 +130,7 @@ const menuItems = {
 
 // Función para cargar las páginas dinámicas
 function loadPage(page) {
+  preloader.preloader();
   $("#content").load(`/pages/${page}.html`, function (response, status) {
     if (status === "error") {
       //   window.location.href = "./pages/404.html"
@@ -262,3 +265,4 @@ window.renderNavbar = renderNavbar;
 window.renderActions = renderActions;
 window.getWithExpiry = getWithExpiry;
 window.setWithExpiry = setWithExpiry;
+window.preloader = preloader;

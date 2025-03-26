@@ -11,31 +11,35 @@ export function init() {
       estado: "generado",
       email: email,
     };
-
-    console.log("Info del ticket: ", data);
     $.ajax({
       url: "api/tickets/create.php",
       type: "POST",
       data: JSON.stringify(data),
       contentType: "application/json; charset=utf-8",
       beforeSend: function () {
-        showLoader();
+        preloader.preloader();
       },
       success: function (response) {
+        preloader.preloader("remove");
         if (response.success) {
-          alert("Ticket generado exitosamente");
+          $.toast({
+            type: "success",
+            message: `Ticket generado exitosamente.`,
+          });
           $("#areaEjecutora").val("");
           $("#tipoAtencion").val("");
           $("#producto").val("");
           $("#descripcion").val("");
         } else {
-          alert("Error al generar el ticket: " + response.message);
+          $.toast({
+            type: "error",
+            message: `Error al generar el ticket: ${response.message}`,
+          });
         }
-        hideLoader();
       },
       error: function (error) {
         console.error("Error al generar el ticket:", error);
-        hideLoader();
+        preloader.preloader("remove");
       },
     });
   });
@@ -43,8 +47,6 @@ export function init() {
   renderActions("ticket");
   const role = getWithExpiry("userRole");
   const empresa = localStorage.getItem("userEmpresa");
-
-  console.log(`Rol: ${role}, Empresa: ${empresa}`);
 
   if (role == "Super Usuario") {
     $("#empresasSegment")
@@ -68,14 +70,6 @@ export function init() {
   } else {
     $("#empresa").val(empresa);
   }
-}
 
-function showLoader() {
-  $(".loader-overlay").show();
-  $(".loader").show();
-}
-
-function hideLoader() {
-  $(".loader-overlay").hide();
-  $(".loader").hide();
+  preloader.preloader("remove");
 }

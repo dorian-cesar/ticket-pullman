@@ -6,5 +6,5 @@ export function init() {
     $("#informeIframe").attr("src", $("#informeIframe").attr("src"));
   });
 
-  
+  preloader.preloader("remove");
 }

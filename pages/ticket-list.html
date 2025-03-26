@@ -43,9 +43,7 @@
         ></button>
       </div>
       <div class="modal-body">
-        <p id="statusModalMessage">
-          
-        </p>
+        <p id="statusModalMessage"></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -78,9 +76,7 @@
         ></button>
       </div>
       <div class="modal-body">
-        <p id="finishModalMessage">
-          
-        </p>
+        <p id="finishModalMessage"></p>
         <div class="mb-3">
           <label for="finishReason" class="form-label"
             >Detalle de Solución:</label
@@ -99,6 +95,37 @@
         </button>
         <button type="button" class="btn btn-success" id="confirmFinish">
           Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="historicoModal"
+  tabindex="-1"
+  aria-labelledby="historicoModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-white">
+        <h5 class="modal-title" id="historicoModalLabel">
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Cerrar"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div id="historicoModalContent"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cerrar
         </button>
       </div>
     </div>

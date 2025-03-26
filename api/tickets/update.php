@@ -47,7 +47,7 @@ try {
 
     // Confirmar transacción
     $conn->commit();
-    echo json_encode(["success" => true, "message" => "Estado del ticket actualizado y registrado en el historial"]);
+    echo json_encode(["success" => true, "message" => "Estado del ticket actualizado y registrado en el historial."]);
 } catch (Exception $e) {
     // Revertir transacción
     $conn->rollback();

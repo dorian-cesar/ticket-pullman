@@ -59,7 +59,7 @@ h1 {
 }
 
 .container {
-  width: 900px;
+  /* width: 900px; */
   font-size: small;
   margin-top: 80px;
   flex: 1;
@@ -313,4 +313,9 @@ footer {
 
 .main-logo {
   max-height: 35px;
+}
+
+.HeaderHistorico th {
+  border-bottom: 5px solid rgb(33 37 41 / 10%) !important;
+  text-align: right;
 }
