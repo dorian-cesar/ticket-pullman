@@ -128,22 +128,27 @@ const menuItems = {
   },
 };
 
-// Función para cargar las páginas dinámicas
 function loadPage(page) {
   preloader.preloader();
-  $("#content").load(`/pages/${page}.html`, function (response, status) {
+
+  // Obtener la base del proyecto dinámicamente
+  const basePath = window.location.pathname.split("/").slice(0, -1).join("/"); 
+
+  // Construir la URL correcta de la página
+  $("#content").load(`${basePath}/pages/${page}.html`, function (response, status) {
     if (status === "error") {
-      //   window.location.href = "./pages/404.html"
-      $("#content").html("");
+      $("#content").html(""); // Si hay error, limpiar contenido
     } else {
-      if (!urlScriptless.some((url) => page.includes(url)))
-        import(`/assets/js/${page}.js`)
+      if (!urlScriptless.some((url) => page.includes(url))) {
+        import(`${basePath}/assets/js/${page}.js`)
           .then((module) => module.init())
           .catch(() => console.warn(`No script module for ${page}`));
+      }
     }
   });
 
-  window.history.pushState({}, "", `/${page}`);
+  // Actualizar la URL sin recargar la página
+  window.history.pushState({}, "", `${basePath}/${page}`);
 }
 
 // Carga inicial según la URL
