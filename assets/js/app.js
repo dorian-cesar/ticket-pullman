@@ -120,6 +120,23 @@ const menuItems = {
       ],
     },
   },
+  Operador: {
+    navbar: [
+      { label: "Inicio", page: "home" },
+      { label: "Mis Tickets", page: "ticket-list" },
+      { label: "Cerrar sesión", action: "logout" },
+    ],
+    actions: {
+      "ticket-list": [
+        {
+          label: false,
+          icon: "bi-arrow-counterclockwise",
+          page: false,
+          id: "btn-updateTable",
+        },
+      ],
+    },
+  },
   Invitado: {
     navbar: [
       { label: "Inicio", page: "home" },

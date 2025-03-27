@@ -30,6 +30,15 @@ function initializeDataTable() {
   dataTable = $("#ticketsTable").DataTable({
     ajax: {
       url: "api/tickets/read.php",
+      type: "POST",
+      data: function (d) {
+        return $.extend({}, d, {
+          emailUser: localStorage.getItem("userEmail"),
+          roleUser: getWithExpiry("userRole"),
+          empresaUser: localStorage.getItem("userEmpresa"),
+          areaUser: localStorage.getItem("userArea"),
+        });
+      },
       dataSrc: function (json) {
         // Asegúrate de que json es un array de objetos
         if (!Array.isArray(json)) {
@@ -51,6 +60,8 @@ function initializeDataTable() {
       },
       { data: "area_ejecutora" },
       { data: "tipo_atencion" },
+      { data: "fecha_creacion" },
+      { data: "email" },
       { data: "producto" },
       { data: "descripcion" },
       { data: "estado" },
@@ -67,9 +78,9 @@ function initializeDataTable() {
             </button>`;
           } else {
             buttons += `
-            <button class="btn btn-black mb-1 historico-ticket" data-estado="${row.estado}" data-id="${
-              row.id
-            }" data-historico='${JSON.stringify(
+            <button class="btn btn-black mb-1 historico-ticket" data-estado="${
+              row.estado
+            }" data-id="${row.id}" data-historico='${JSON.stringify(
               row.historial
             )}' title="Ver Histórico">
               <i class="bi bi-clock-history"></i>
@@ -179,12 +190,14 @@ function initializeDataTable() {
     // Generamos contenido dinámico según los objetos del arreglo
     let content = '<table class="table borderless">';
     historicoData.forEach((item, index) => {
-      content += `<tr class="HeaderHistorico"><th colspan="2">Registro ${index + 1}</th></tr>`;
+      content += `<tr class="HeaderHistorico"><th colspan="2">Registro ${
+        index + 1
+      }</th></tr>`;
       content += `<tr><td>Fecha:</td><td>${item.fecha}</td></tr>`;
       content += `<tr><td>Descripción: </td><td>${item.Hdescripcion}</td></tr>`;
       content += `<tr><td>Estado: </td><td>'<i>${item.Hestado}</i>'</td></tr>`;
     });
-    content += '</table>';
+    content += "</table>";
 
     $("#historicoModalContent").html(content);
     $("#historicoModal").modal("show");

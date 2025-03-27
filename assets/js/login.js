@@ -16,6 +16,7 @@ export function init() {
           localStorage.setItem("userEmail", response.email);
           localStorage.setItem("userEmpresa", response.empresaName);
           localStorage.setItem("userEmpresaID", response.empresaID);
+          localStorage.setItem("userArea", response.area);
           setWithExpiry("userRole", response.rol, 1000 * 60 * 30);
           renderNavbar();
           loadPage("ticket-list");
