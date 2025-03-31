@@ -42,6 +42,7 @@ if ($result->num_rows > 0) {
                 'producto' => $row['producto'],
                 'descripcion' => $row['descripcion'],
                 'estado' => $row['estado'],
+                'archivo' => $row['archivo'],
                 'fecha_creacion' => $row['fecha_creacion'],
                 'email' => $row['email'],
                 'historial' => []

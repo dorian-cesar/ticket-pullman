@@ -71,7 +71,6 @@ function initializeDataTable() {
         className: "actions-col",
         render: function (data, type, row) {
           let buttons = "";
-
           if (row.estado == "generado") {
             buttons = `<button class="btn btn-black mb-1 change-status" data-id="${row.id}" data-email="${row.email}" title="Cambiar a 'En Curso'">
               <i class="bi bi-person-check"></i>
@@ -93,11 +92,21 @@ function initializeDataTable() {
               <i class="bi bi-lock-fill"></i>
             </button>`;
           }
+
+          if (row.archivo) {
+            let iconFile = "file-image";
+            if(row.archivo.endsWith(".pdf"))
+              iconFile = "file-pdf";
+            buttons += `
+            <button class="btn btn-black mb-1 ver-archivo" data-url="./uploads/${row.archivo}" title="Abrir archivo">
+              <i class="bi bi-${iconFile}"></i>
+            </button>`;
+          }
           return buttons;
         },
       },
     ],
-    order: [[6, "desc"]],
+    order: [[8, "desc"]],
     language: {
       // "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json" // Para traducir DataTables a español
       paginate: {
@@ -172,8 +181,11 @@ function initializeDataTable() {
         actualizarEstadoTicket(id, "cerrado", reason, email);
         $("#finishModal").modal("hide");
       });
+  });
 
-    // Aquí puedes mandar una petición a la API para finalizar el ticket
+  $("#ticketsTable").on("click", ".ver-archivo" ,function () {
+    const fileUrl = $(this).data("url");
+    abrirArchivo(fileUrl);
   });
 
   $("#ticketsTable").on("click", ".historico-ticket", function () {
@@ -261,4 +273,38 @@ function actualizarEstadoTicket(ticketId, estado, descripcion = "", email) {
       });
     },
   });
+}
+
+function abrirArchivo(url) {
+  const nuevaVentana = window.open("", "_blank");
+  if (nuevaVentana) {
+    if (url.endsWith(".pdf")) {
+      // Mostrar PDF en un iframe
+      nuevaVentana.document.write(`
+              <html>
+              <head><title>Vista Previa</title></head>
+              <body style="margin:0; text-align:center;">
+                  <iframe src="${url}" width="100%" height="100%" style="border:none;"></iframe>
+              </body>
+              </html>
+          `);
+    } else if (url.match(/\.(jpg|jpeg|png|gif)$/)) {
+      // Mostrar imagen directamente
+      nuevaVentana.document.write(`
+              <html>
+              <head><title>Vista Previa</title></head>
+              <body style="margin:0; text-align:center;">
+                  <img src="${url}" style="max-width:100%; max-height:100vh;">
+              </body>
+              </html>
+          `);
+    } else {
+      // Para otros formatos, simplemente abrir la URL
+      nuevaVentana.location.href = url;
+    }
+  } else {
+    alert(
+      "Tu navegador bloqueó la ventana emergente. Permite las ventanas emergentes para ver el archivo."
+    );
+  }
 }

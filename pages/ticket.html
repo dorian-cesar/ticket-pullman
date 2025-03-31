@@ -2,10 +2,10 @@
 
 <div id="actions-panel" class="actions-panel text-end"></div>
 <div class="inner-container">
-  <form id="generateTicketForm">
+  <form id="generateTicketForm" enctype="multipart/form-data">
     <div class="row g-3">
       <div id="empresasSegment" class="form-group col-12 col-md-6 hidden">
-        <input type="text" name="empresa" id="empresa">
+        <input type="text" name="empresa" id="empresa" />
       </div>
       <div class="form-group col-12 col-md-6">
         <label for="areaEjecutora" class="form-label">Área Ejecutora</label>
@@ -48,6 +48,39 @@
           <option value="MONITOREO ON BOARD">MONITOREO ON BOARD</option>
           <option value="CCTV">CCTV</option>
         </select>
+      </div>
+      <div class="form-group col-12 col-md-12">
+        <label for="descripcion" class="form-label">Documentación</label>
+        <div class="col-12 col-md-6 fileSegment">
+          <label for="fileInput" class="btn btn-black"
+            >Seleccionar archivo: </label
+          >
+          <input
+            type="file"
+            id="fileInput"
+            name="file"
+            accept="image/*,application/pdf"
+            style="display: none"
+          />
+          <span id="fileName">Ningún archivo seleccionado</span>
+          <div class="col-12" id="previewContainer" style="display: none">
+            <img
+              id="previewImage"
+              src=""
+              alt="Vista previa"
+              style="max-width: 200px; display: none"
+            />
+            <iframe
+              id="previewPDF"
+              style="width: 100%; height: 500px; display: none"
+            ></iframe>
+            <div class="col-12 col-md-12 text-end">
+              <button class="btn btn-black mt-2" type="button" id="clearFile">
+                Remover Archivo
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="form-group col-12 col-md-12">
         <label for="descripcion" class="form-label">Descripción</label>

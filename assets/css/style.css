@@ -319,3 +319,21 @@ footer {
   border-bottom: 5px solid rgb(33 37 41 / 10%) !important;
   text-align: right;
 }
+
+#previewContainer {
+  text-align: center;
+  /* padding-bottom: 15px; */
+  padding-top: 15px;
+}
+
+.fileSegment {
+  padding: 15px 15px;
+  background-color: #f8f9fa;
+  border: 1px solid #00000033;
+  border-radius: 5px;
+  margin-bottom: 6px;
+}
+
+.custom-file-label{
+  cursor: pointer
+}
